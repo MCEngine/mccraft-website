@@ -1,5 +1,3 @@
-# MCCraft progress (2026/0/3/1)
-
 ## 3089ea1
 
 Merge pull request #2 from MCEngine/feature/implement-plugin-logic.
