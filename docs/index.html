@@ -171,7 +171,7 @@
                 <h3>4. Security & Validation Listeners</h3>
                 <ul class="list">
                     <li>
-                        <strong>ItemDropProtectionListener:</strong> Prevents players from throwing away the Station Item (Q-drop or Drag-drop) if it contains the <code>mccraft_type</code> data key. This keeps the specific crafting tool unique to the player.
+                        <strong>ItemDropProtectionListener:</strong> Blocks Q-drop / drag-drop of station items with the <code>mccraft_type</code> key <em>only while the crafting GUI is open (non-editor)</em>. Outside the crafting view (and inside the editor), drops are allowed. This keeps the crafting tool safe without blocking normal gameplay.
                     </li>
                     <li>
                         <strong>HeadItemInteractListener (BlockPlace):</strong> Ensures that if a player tries to place the Head Item against a wall or floor, the action is cancelled. The item is meant to be a handheld "key" to open the GUI, not a physical block in the world.
