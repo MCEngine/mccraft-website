@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCCraft</title>
+    <link rel="stylesheet" href="./css/main.css">
+</head>
+<body>
+    <div id="header-placeholder"></div>
+
+    <main class="page">
+        <section class="hero">
+            <div class="hero__text">
+                <p class="eyebrow">PaperMC plugin</p>
+                <h1>Custom crafting stations for MCCraft</h1>
+                <p class="lede">Define recipes, gate them by station types, and let players craft through a guided GUI with live validation.</p>
+                <div class="pill-grid">
+                    <div class="pill">Recipe editor GUI</div>
+                    <div class="pill">Type-gated crafting</div>
+                    <div class="pill">Async DB with cache</div>
+                    <div class="pill">Permissioned commands</div>
+                </div>
+            </div>
+            <div class="hero__card">
+                <h2>How it works</h2>
+                <ol class="list">
+                    <li><strong>Commands</strong> create/list recipes and types; permissions gate each action.</li>
+                    <li><strong>Editor GUI</strong> lets staff place ingredients/result; closing saves to DB and in-memory cache.</li>
+                    <li><strong>Crafting view</strong> pulls cached recipes, auto-matches grids, and consumes ingredients/head items.</li>
+                    <li><strong>Database layer</strong> supports SQLite/MySQL with pooling; cache hydrates on startup and mirrors writes.</li>
+                </ol>
+            </div>
+        </section>
+    </main>
+
+    <div id="footer-placeholder"></div>
+
+    <script>
+        const loadPartial = (id, path) => {
+            fetch(path).then(r => r.text()).then(html => {
+                document.getElementById(id).innerHTML = html;
+            }).catch(() => {
+                document.getElementById(id).innerHTML = '';
+            });
+        };
+        loadPartial('header-placeholder', './partial/header.html');
+        loadPartial('footer-placeholder', './partial/footer.html');
+    </script>
+</body>
+</html>

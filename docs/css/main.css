@@ -1,0 +1,119 @@
+:root {
+    --bg: #0d0f17;
+    --panel: #131725;
+    --accent: #5fd4a1;
+    --text: #e6e9f0;
+    --muted: #9aa3b5;
+    --border: #1e2435;
+    --shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+    --radius: 14px;
+    --font: 'Segoe UI', 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: var(--font);
+    background: radial-gradient(circle at 15% 20%, rgba(95, 212, 161, 0.06), transparent 25%),
+                radial-gradient(circle at 85% 10%, rgba(95, 212, 161, 0.05), transparent 25%),
+                radial-gradient(circle at 30% 80%, rgba(95, 212, 161, 0.05), transparent 25%),
+                var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+}
+
+.page {
+    width: min(1200px, 92vw);
+    margin: 0 auto;
+    padding: 72px 0 96px;
+}
+
+.hero {
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 32px;
+    align-items: start;
+}
+
+.hero__text {
+    background: linear-gradient(135deg, rgba(95, 212, 161, 0.18), rgba(95, 212, 161, 0.05));
+    border: 1px solid rgba(95, 212, 161, 0.35);
+    box-shadow: var(--shadow);
+    border-radius: var(--radius);
+    padding: 32px;
+}
+
+.eyebrow {
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 10px;
+    font-size: 0.8rem;
+}
+
+h1 {
+    font-size: clamp(2.2rem, 3vw, 2.9rem);
+    line-height: 1.1;
+    margin-bottom: 12px;
+}
+
+.lede {
+    color: var(--muted);
+    font-size: 1.05rem;
+    margin-bottom: 20px;
+    max-width: 640px;
+}
+
+.pill-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.pill {
+    padding: 10px 14px;
+    background: rgba(95, 212, 161, 0.1);
+    color: var(--text);
+    border: 1px solid rgba(95, 212, 161, 0.25);
+    border-radius: 999px;
+    font-size: 0.95rem;
+}
+
+.hero__card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    border-radius: var(--radius);
+    padding: 28px;
+}
+
+.hero__card h2 {
+    margin-bottom: 16px;
+    font-size: 1.4rem;
+}
+
+.list {
+    display: grid;
+    gap: 12px;
+    color: var(--muted);
+    padding-left: 18px;
+}
+
+.list li {
+    line-height: 1.5;
+}
+
+.list strong {
+    color: var(--text);
+}
+
+@media (max-width: 920px) {
+    .hero {
+        grid-template-columns: 1fr;
+    }
+}

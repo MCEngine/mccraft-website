@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCCraft Project Logs</title>
+    <link rel="stylesheet" href="../css/partial/header.css">
+    <link rel="stylesheet" href="../css/partial/footer.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #e0e0e0;
+            background-color: #0d0f17;
+        }
+        .container {
+            display: flex;
+            max-width: 1200px;
+            margin: 0 auto;
+            min-height: calc(100vh - 200px);
+            padding: 2rem 0;
+            gap: 1rem;
+        }
+        .main-content {
+            flex: 1;
+            padding: 2rem;
+            background: #131725;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            border: 1px solid #1e2435;
+        }
+        .sidebar {
+            width: 300px;
+            padding: 1.5rem 1rem;
+            background: #131725;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            border: 1px solid #1e2435;
+            position: sticky;
+            top: 2rem;
+            height: fit-content;
+        }
+        h1 { color: #5fd4a1; margin-bottom: 1.5rem; font-size: 2.2rem; border-bottom: 3px solid #42a5f5; padding-bottom: 0.5rem; }
+        h2 { color: #90caf9; margin: 1.5rem 0 0.8rem 0; font-size: 1.5rem; }
+        h3 { color: #64b5f6; margin: 1.2rem 0 0.4rem 0; font-size: 1.2rem; }
+        .log-entry { background: #1a1f30; border-left: 4px solid #42a5f5; padding: 1.5rem; margin-bottom: 1.5rem; border-radius: 0 10px 10px 0; box-shadow: 0 4px 15px rgba(66, 165, 245, 0.2); text-align: left; }
+        .log-path { font-family: 'Courier New', monospace; background: #0d0f17; color: #64b5f6; padding: 0.4rem 0.6rem; border-radius: 6px; font-size: 0.9rem; margin-bottom: 1rem; display: inline-block; }
+        .nav-title { font-size: 1.1rem; font-weight: bold; color: #64b5f6; margin-bottom: 0.8rem; border-bottom: 2px solid #42a5f5; padding-bottom: 0.4rem; }
+        .nav-list { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; padding: 0; }
+        .nav-link { display: block; padding: 0.6rem 0.8rem; background: #1a1f30; color: #e0e0e0; text-decoration: none; border-radius: 6px; transition: all 0.3s ease; font-family: 'Courier New', monospace; font-size: 0.95rem; }
+        .nav-link:hover { background: #42a5f5; color: #0d0f17; transform: translateX(3px); }
+        .nav-link.active { background: #1976d2; color: #ffffff; }
+        .loading { text-align: center; padding: 2rem; color: #9e9e9e; }
+        .error { background: #e74c3c; color: white; padding: 1rem; border-radius: 6px; margin-bottom: 1rem; }
+        .markdown-content h1 { font-size: 1.6rem; margin: 1.2rem 0; color: #64b5f6; }
+        .markdown-content h2 { font-size: 1.3rem; margin: 1rem 0; color: #90caf9; }
+        .markdown-content h3 { font-size: 1.1rem; margin: 0.8rem 0; color: #64b5f6; }
+        .markdown-content ul { margin-left: 1.2rem; margin-bottom: 1rem; }
+        .markdown-content li { margin-bottom: 0.3rem; }
+        .markdown-content strong { color: #90caf9; }
+        .markdown-content code { background: #0d0f17; color: #64b5f6; padding: 0.2rem 0.4rem; border-radius: 3px; font-family: 'Courier New', monospace; }
+        @media (max-width: 900px) { .container { flex-direction: column; } .sidebar { width: 100%; position: relative; top: 0; } .main-content { margin-right: 0; } }
+    </style>
+</head>
+<body>
+    <div id="header-placeholder"></div>
+    <div class="container">
+        <main class="main-content">
+            <h1>MCCraft Project Logs</h1>
+            <div id="logs-container">
+                <div class="loading">Loading logs...</div>
+            </div>
+        </main>
+        <aside class="sidebar">
+            <div class="nav-title">Latest Logs</div>
+            <nav>
+                <ul id="nav-list" class="nav-list">
+                    <li><div class="loading">Loading navigation...</div></li>
+                </ul>
+            </nav>
+        </aside>
+    </div>
+    <div id="footer-placeholder"></div>
+
+    <script>
+        class LogViewer {
+            constructor() {
+                this.logs = [];
+                this.init();
+            }
+            async init() {
+                try {
+                    await this.loadLogs();
+                    this.renderNavigation();
+                    this.renderLogs();
+                } catch (error) {
+                    this.showError('Failed to load logs: ' + error.message);
+                }
+            }
+            async loadLogs() {
+                const logPaths = await this.loadLogIndex();
+                if (!Array.isArray(logPaths) || logPaths.length === 0) {
+                    throw new Error('Log index is empty');
+                }
+                for (const path of logPaths) {
+                    try {
+                        const content = await this.loadLogContent(path);
+                        this.logs.push({ path, content, timestamp: this.parseTimestamp(path) });
+                    } catch (e) { console.warn('Failed to load log', path, e); }
+                }
+                this.logs.sort((a,b) => b.timestamp - a.timestamp);
+            }
+            async loadLogIndex() {
+                const res = await fetch('./log-index.json', { cache: 'no-store' });
+                if (!res.ok) throw new Error('Failed to load log index');
+                return res.json();
+            }
+            async loadLogContent(path) {
+                const res = await fetch(`./${path}/log.md`);
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                return res.text();
+            }
+            parseTimestamp(path) {
+                const parts = path.split('/');
+                return new Date(parseInt(parts[0]), parseInt(parts[1]), parseInt(parts[2]), parseInt(parts[3]) * 6).getTime();
+            }
+            renderNavigation() {
+                const navList = document.getElementById('nav-list');
+                navList.innerHTML = '';
+                this.logs.forEach((log, i) => {
+                    const li = document.createElement('li');
+                    const a = document.createElement('a');
+                    a.href = '#';
+                    a.className = 'nav-link' + (i === 0 ? ' active' : '');
+                    a.textContent = log.path;
+                    a.onclick = (e) => { e.preventDefault(); this.selectLog(log.path); };
+                    li.appendChild(a);
+                    navList.appendChild(li);
+                });
+            }
+            renderLogs() {
+                if (this.logs.length === 0) {
+                    this.showError('No logs found');
+                    return;
+                }
+                this.displayLog(this.logs[0]);
+            }
+            async selectLog(path) {
+                const log = this.logs.find(l => l.path === path);
+                if (!log) return;
+                this.displayLog(log);
+                document.querySelectorAll('.nav-link').forEach(link => {
+                    link.classList.toggle('active', link.textContent === path);
+                });
+            }
+            displayLog(log) {
+                const container = document.getElementById('logs-container');
+                const [y,m,d,i] = log.path.split('/');
+                container.innerHTML = `
+                    <div class="log-entry">
+                        <div class="log-path">${y}/${m}/${d} (iteration ${i})</div>
+                        <div class="markdown-content">${this.markdownToHtml(log.content)}</div>
+                    </div>
+                `;
+            }
+            markdownToHtml(md) {
+                return md
+                    .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+                    .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+                    .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+                    .replace(/\*\*(.*)\*\*/gim, '<strong>$1</strong>')
+                    .replace(/\n\- (.*)/gim, '<li>$1</li>')
+                    .replace(/(<li>.*<\/li>)/gims, '<ul>$1</ul>')
+                    .replace(/`([^`]+)`/g, '<code>$1</code>')
+                    .replace(/\n\n/g, '</p><p>')
+                    .replace(/^/, '<p>')
+                    .replace(/$/, '</p>');
+            }
+            showError(message) {
+                document.getElementById('logs-container').innerHTML = `<div class="error">${message}</div>`;
+                document.getElementById('nav-list').innerHTML = '<li><div class="error">Failed to load navigation</div></li>';
+            }
+        }
+        document.addEventListener('DOMContentLoaded', () => {
+            const loadPartial = (id, path) => {
+                fetch(path).then(r => r.text()).then(html => { document.getElementById(id).innerHTML = html; });
+            };
+            loadPartial('header-placeholder', '../partial/header.html');
+            loadPartial('footer-placeholder', '../partial/footer.html');
+            new LogViewer();
+        });
+    </script>
+</body>
+</html>
