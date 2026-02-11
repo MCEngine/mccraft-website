@@ -3,8 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MCCraft</title>
+    <title>MCCraft Documentation</title>
     <link rel="stylesheet" href="./css/main.css">
+    <style>
+        /* Small inline overrides for the documentation layout */
+        .doc-section {
+            margin-top: 40px;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 24px;
+        }
+        .code-block {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 12px;
+            border-radius: 8px;
+            font-family: monospace;
+            color: #dcdfe4;
+            border: 1px solid var(--border);
+            margin: 10px 0;
+            display: block;
+            width: 100%;
+        }
+        .flow-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            margin-top: 24px;
+        }
+    </style>
 </head>
 <body>
     <div id="header-placeholder"></div>
@@ -12,26 +38,134 @@
     <main class="page">
         <section class="hero">
             <div class="hero__text">
-                <p class="eyebrow">PaperMC plugin</p>
-                <h1>Custom crafting stations for MCCraft</h1>
-                <p class="lede">Define recipes, gate them by station types, and let players craft through a guided GUI with live validation.</p>
+                <p class="eyebrow">Internal Documentation</p>
+                <h1>MCCraft System Logic</h1>
+                <p class="lede">A deep dive into the custom crafting engine, explaining the async database architecture, memory caching, and event-driven GUI interactions.</p>
                 <div class="pill-grid">
-                    <div class="pill">Recipe editor GUI</div>
-                    <div class="pill">Type-gated crafting</div>
-                    <div class="pill">Async DB with cache</div>
-                    <div class="pill">Permissioned commands</div>
+                    <div class="pill">Async SQLite/MySQL</div>
+                    <div class="pill">Base64 Serialization</div>
+                    <div class="pill">Event Listeners</div>
+                    <div class="pill">In-Memory Cache</div>
                 </div>
             </div>
             <div class="hero__card">
-                <h2>How it works</h2>
-                <ol class="list">
-                    <li><strong>Commands</strong> create/list recipes and types; permissions gate each action.</li>
-                    <li><strong>Editor GUI</strong> lets staff place ingredients/result; closing saves to DB and in-memory cache.</li>
-                    <li><strong>Crafting view</strong> pulls cached recipes, auto-matches grids, and consumes ingredients/head items.</li>
-                    <li><strong>Database layer</strong> supports SQLite/MySQL with pooling; cache hydrates on startup and mirrors writes.</li>
-                </ol>
+                <h2>System Overview</h2>
+                <p style="color: var(--muted); line-height: 1.6;">
+                    MCCraft creates specific "Station Types" (e.g., a Magic Bench). Each station has a unique "Head Item". 
+                    When a player interacts with this item, a custom GUI opens. The system matches the player's 3x3 grid 
+                    against a loaded cache of recipes to produce a result.
+                </p>
             </div>
         </section>
+
+        <div class="doc-section">
+            <div class="hero__card">
+                <h3>1. Data Persistence & Caching</h3>
+                <p style="color: var(--muted); margin-bottom: 15px;">
+                    To ensure server performance, the plugin avoids querying the database during gameplay events.
+                </p>
+                <ol class="list">
+                    <li>
+                        <strong>Startup Logic:</strong> When the plugin enables, <code>MCCraftProvider</code> initializes the database (MySQL or SQLite) and immediately runs <code>populateCache()</code>. This pulls every registered recipe and station type into the RAM (Heap).
+                    </li>
+                    <li>
+                        <strong>The Recipe Cache:</strong> The <code>RecipeCache</code> singleton stores data in a <code>ConcurrentHashMap</code>. 
+                        <br><em>Key:</em> Station Type string.
+                        <br><em>Value:</em> A list of <code>CachedRecipe</code> objects (which contain the pre-parsed ItemStacks).
+                    </li>
+                    <li>
+                        <strong>Saving (Upsert):</strong> When an admin saves a recipe, it is written Asynchronously to the DB to prevent lag, but the Cache is updated Synchronously immediately. This ensures the recipe works instantly without waiting for the DB write to finish.
+                    </li>
+                    <li>
+                        <strong>Serialization:</strong> Items are not stored as JSON. The entire 3x3 grid + Result item (10 items total) are serialized into a binary byte array and converted to a <strong>Base64 string</strong>. This string is what is stored in the <code>contents</code> column of the database.
+                    </li>
+                </ol>
+            </div>
+        </div>
+
+        <div class="flow-grid">
+            
+            <div class="hero__card">
+                <h3>2. Owner / Admin Workflow</h3>
+                <p style="color: var(--muted); margin-bottom: 15px;">How new stations and recipes are created.</p>
+                
+                <h4 style="color: var(--accent); margin-top:15px;">Step A: Define a Type</h4>
+                <p style="font-size: 0.9rem; color: var(--muted);">
+                    Command: <code style="color: #fff">/craft type create &lt;name&gt; &lt;hand|base64&gt;</code>
+                </p>
+                <p style="font-size: 0.9rem; color: var(--muted); margin-top: 5px;">
+                    This registers a "Category". You must provide a specific item (texture) that represents this station. This is saved to the <code>mccraft_type</code> table.
+                </p>
+
+                <h4 style="color: var(--accent); margin-top:15px;">Step B: Create Recipe</h4>
+                <p style="font-size: 0.9rem; color: var(--muted);">
+                    Command: <code style="color: #fff">/craft create &lt;type&gt; &lt;id&gt;</code>
+                </p>
+                <p style="font-size: 0.9rem; color: var(--muted); margin-top: 5px;">
+                    This opens the <strong>Editor GUI</strong>. The plugin recognizes this GUI because the window title contains the Recipe ID in brackets (e.g., <code>[my_sword]</code>).
+                </p>
+
+                <h4 style="color: var(--accent); margin-top:15px;">Step C: The Save Logic</h4>
+                <p style="font-size: 0.9rem; color: var(--muted); margin-top: 5px;">
+                    There is no "Save" button. The <code>CraftingGUIListener</code> listens for the <strong>InventoryCloseEvent</strong>.
+                    If the closed inventory is an Editor:
+                    <br>1. It scans the 3x3 grid and the Result slot.
+                    <br>2. Serializes them to Base64.
+                    <br>3. Pushes to DB and Cache automatically.
+                </p>
+            </div>
+
+            <div class="hero__card">
+                <h3>3. Player Workflow</h3>
+                <p style="color: var(--muted); margin-bottom: 15px;">How players interact with the system.</p>
+
+                <h4 style="color: var(--accent); margin-top:15px;">Step A: Getting the Station</h4>
+                <p style="font-size: 0.9rem; color: var(--muted);">
+                    Players obtain the station item (usually distributed by admins via <code>/craft get</code>).
+                    <br>
+                    <strong>Logic:</strong> This item has a hidden NBT tag (PersistentDataContainer) storing the <code>mccraft_type</code> key.
+                </p>
+
+                <h4 style="color: var(--accent); margin-top:15px;">Step B: Opening the Interface</h4>
+                <p style="font-size: 0.9rem; color: var(--muted); margin-top: 5px;">
+                    <strong>Listener:</strong> <code>HeadItemInteractListener</code>.
+                    <br>
+                    When a player Right Clicks holding the station item:
+                    <br>1. The event cancels (block is not placed).
+                    <br>2. The system checks if recipes exist for this type.
+                    <br>3. <code>CraftingGUI.openCraftingView</code> is triggered.
+                </p>
+
+                <h4 style="color: var(--accent); margin-top:15px;">Step C: Crafting Logic</h4>
+                <p style="font-size: 0.9rem; color: var(--muted); margin-top: 5px;">
+                    <strong>Listener:</strong> <code>CraftingGUIListener</code> (Click/Drag events).
+                    <br>
+                    Every time the player places an item in the grid, the plugin runs a <strong>Matrix Match</strong>:
+                    <br>It compares the player's current grid against all <code>CachedRecipe</code> objects for that station type.
+                    <br><strong>If Match:</strong> The result slot is populated visually.
+                    <br><strong>If Pickup:</strong> Ingredients are decremented, and the Head Item might be consumed (depending on logic).
+                </p>
+            </div>
+
+        </div>
+
+        <div class="doc-section">
+             <div class="hero__card">
+                <h3>4. Security & Validation Listeners</h3>
+                <ul class="list">
+                    <li>
+                        <strong>ItemDropProtectionListener:</strong> Prevents players from throwing away the Station Item (Q-drop or Drag-drop) if it contains the <code>mccraft_type</code> data key. This keeps the specific crafting tool unique to the player.
+                    </li>
+                    <li>
+                        <strong>HeadItemInteractListener (BlockPlace):</strong> Ensures that if a player tries to place the Head Item against a wall or floor, the action is cancelled. The item is meant to be a handheld "key" to open the GUI, not a physical block in the world.
+                    </li>
+                    <li>
+                        <strong>Inventory Permissions:</strong> The Editor GUI fills unused slots with Red Stained Glass. The Listener cancels any click on these filler items to prevent players from stealing GUI elements.
+                    </li>
+                </ul>
+            </div>
+        </div>
+
     </main>
 
     <div id="footer-placeholder"></div>
