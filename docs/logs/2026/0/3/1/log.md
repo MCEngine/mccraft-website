@@ -1,25 +1,89 @@
 # MCCraft progress (2026/0/3/1)
 
-## Scope
-Changes from commit `46d17a2a09db6b509168bda9ea7c30c3d023d245` to latest.
+## 97121e7
 
-## Highlights
-- Added command system with subcommand manager, tab completion, and help/create/get/editor handlers.
-- Introduced GUI layer (crafting editor list, crafting grid GUI) plus listener system to drive interactions.
-- Implemented MCCraftProvider singleton and async wrappers to unify DB access and cache updates.
-- Added database implementations for SQLite and MySQL, including type and recipe tables.
-- Introduced RecipeCache for in-memory matching and fast lookups; refactored to store ItemStacks directly.
-- Enhanced crafting flow: right-click crafting entrypoint, drag/drop guards, cursor stacking, ingredient consumption, and head-item checks.
-- Normalized type names to lowercase across commands/provider/cache; added permission checks and duplicate-id protection.
-- Misc fixes: avoid NPEs in recipe comparisons, keep cursor items when crafting, add missing imports and deprecation cleanups.
+feat: Add API interfaces (IMCCraftDB, ICraftCommandHandle).
 
-## Components touched
-- Commands: central manager dispatching to registered subcommands with permission enforcement.
-- GUIs: crafting editor and viewer inventories with filler slots, serialized recipes, and dynamic result slot updates.
-- Listeners: crafting GUI interactions, drop/place protections, inventory close/save flows, right-click activation.
-- Persistence: SQLite/MySQL schemas (mccraft_item, mccraft_type) with upsert/delete/read operations; type head items stored.
-- Cache: RecipeCache hydrated on startup; mirrors writes and performs recipe matching per station type.
+## fe2eb6a
 
-## Notes
-- Requires PaperMC 1.21+, Java 21+.
-- Head items are required for non-default crafting types and are decremented on craft.
+feat: Add database implementations (MCCraftSQLite, MCCraftMySQL).
+
+## a4679e3
+
+feat: Add MCCraftProvider central API singleton.
+
+## e2ea875
+
+feat: Add command system (Manager, TabCompleter, Help, Create, Get, Editor handlers).
+
+## b04dc3b
+
+feat: Add GUI system (CraftingGUI, EditorListGUI) and utility classes (ItemSerializer, GUIConstants).
+
+## ba583cb
+
+feat: Add listener system (CraftingGUI, EditorListGUI, ItemDropProtection listeners).
+
+## 704c235
+
+feat: Wire up MCCraftPlugin engine with full system (DB, commands, listeners, provider).
+
+## 103467d
+
+fix: centralize create permission check in handler metadata.
+
+## 8881d54
+
+chore: add permissions for editor and get commands.
+
+## 6975772
+
+refactor: separate type registration from recipe creation, add mccraft_type table.
+
+## d3887a5
+
+fix: accept HDB head base64 and block duplicate recipe ids.
+
+## 7ca9f99
+
+Merge pull request #1 from MCEngine/feature/mccraft-refactor.
+
+## d6a1253
+
+fix: replace deprecated serialization with Paper NBT API, use Paper PlayerProfile for skulls, support hand item.
+
+## 0f5c38d
+
+chore: remove deprecated inventory titles and update listeners.
+
+## 1d02c10
+
+feat: add right-click crafting, block place/drop prevention, fix deprecations, add item display name.
+
+## 4f7ba46
+
+feat: add RecipeCache for in-memory fast access; refactor crafting view to empty GUI with dynamic recipe matching.
+
+## f1c7c86
+
+refactor: store ItemStack directly in RecipeCache instead of Base64; deserialize only at boundary.
+
+## 86a1776
+
+fix: avoid NPE warning in RecipeCache grid comparison.
+
+## 6877db7
+
+fix: keep cursor items when taking crafting result; stack or add to inventory.
+
+## cbc4581
+
+fix: add missing Map import for crafting listener.
+
+## 2b107cc
+
+chore: normalize type names to lowercase for commands/provider/cache.
+
+## 3089ea1
+
+Merge pull request #2 from MCEngine/feature/implement-plugin-logic.
