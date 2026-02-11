@@ -154,10 +154,13 @@
                 <p style="font-size: 0.9rem; color: var(--muted); margin-top: 5px;">
                     <strong>Listener:</strong> <code>CraftingGUIListener</code> (Click/Drag events).
                     <br>
-                    Every time the player places an item in the grid, the plugin runs a <strong>Matrix Match</strong>:
-                    <br>It compares the player's current grid against all <code>CachedRecipe</code> objects for that station type.
+                    Every time the player places an item in the grid, the plugin runs a <strong>Matrix Match</strong> against cached recipes.
                     <br><strong>If Match:</strong> The result slot is populated visually.
-                    <br><strong>If Pickup:</strong> Ingredients are decremented, and the Head Item might be consumed (depending on logic).
+                    <br><strong>If Pickup:</strong> Ingredients are decremented.
+                    <br>
+                    <strong style="color: #e06c75;">Consumption Rule:</strong> 
+                    If the station type is <code>default</code>, the station item is not consumed. 
+                    For all other types, <strong>one unit of the station item is consumed</strong> from the player's inventory each time they craft a result item.
                 </p>
             </div>
 
