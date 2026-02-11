@@ -87,7 +87,7 @@
             
             <div class="hero__card">
                 <h3>2. Owner / Admin Workflow</h3>
-                <p style="color: var(--muted); margin-bottom: 15px;">How new stations and recipes are created.</p>
+                <p style="color: var(--muted); margin-bottom: 15px;">How new stations and recipes are managed.</p>
                 
                 <h4 style="color: var(--accent); margin-top:15px;">Step A: Define a Type</h4>
                 <p style="font-size: 0.9rem; color: var(--muted);">
@@ -112,6 +112,20 @@
                     <br>1. It scans the 3x3 grid and the Result slot.
                     <br>2. Serializes them to Base64.
                     <br>3. Pushes to DB and Cache automatically.
+                </p>
+
+                <h4 style="color: var(--accent); margin-top:15px;">Step D: Bulk Editing (The Editor List)</h4>
+                <p style="font-size: 0.9rem; color: var(--muted);">
+                    Command: <code style="color: #fff">/craft editor &lt;type&gt;</code>
+                </p>
+                <p style="font-size: 0.9rem; color: var(--muted); margin-top: 5px;">
+                    <strong>Purpose:</strong> Lists all registered recipes for a specific station type in a GUI.
+                    <br><strong>Logic:</strong>
+                    <br>1. <code>EditorListGUI</code> queries the DB for all recipes of that type.
+                    <br>2. It displays the <em>Result Item</em> of each recipe as a clickable icon.
+                    <br>3. <strong>Listener:</strong> <code>EditorListGUIListener</code> detects clicks on these icons.
+                    <br>4. <strong>Action:</strong> It fetches the full recipe data and re-opens the <strong>Editor GUI</strong> (from Step B) pre-filled with that recipe's grid.
+                    <br>5. Closing this new window saves any edits back to the existing ID.
                 </p>
             </div>
 
